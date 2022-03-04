@@ -1,0 +1,77 @@
+{% extends "core/base.html"%}
+
+{% block titulo %}BIENVENIDA{% endblock %}
+
+{% block estilos %}
+
+<style>
+
+    
+</style>
+
+{% endblock %}
+
+{% block contenido %}
+
+<div class="container mt-5">
+    <h1>Libros Favoritos</h1>
+    <hr>
+</div>
+<div class='row'>
+        <div class='d-flex col-6 align-content-center justify-content-center'>
+            <form class='' action='' method='post'>
+                {% csrf_token %}
+                {{ formModel.non_field_errors }}
+
+                {% for field in formModel %}
+                <div class="mb-2">
+                    <label for="{{ field.id_for_label }}" class="col-4 col-form-label">{{ field.label }}</label>
+                    <div class="col-12">
+                        {{ field }}
+                    </div>
+
+                    {% if field.errors %}
+
+                    <div class="alert alert-danger mt-2" role="alert">
+                        {% for error in field.errors %}
+                        {{ error }}
+                        {% endfor %}
+                    </div>
+
+                    {% endif %}
+
+                    {% if field.help_text %}
+                    <p class="help">{{ field.help_text|safe }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <button class="btn btn-success d-flex mb-2" type="submit">Agregar Libro</button>
+                </div>
+            </form>
+        </div>
+        <div class='container col-5 align-content-center justify-content-center'>
+            <h3>Todos los Libros</h3>
+            <hr>
+            {% for book in books %}
+            <p> <strong>Libro: </strong><a href="{% url 'books:detail' pk=book.id %}">{{book.title}}</a></p>
+            {% comment %} <p> <strong>Libro id: </strong><a href="#">{{book.id}}</a></p> {% endcomment %}
+            {% comment %} <p><strong>Descripcion: </strong> {{book.description}}</p> {% endcomment %}
+            <p> <strong>Subido por: </strong>{{book.uploaded_by.nombre}} {{book.uploaded_by.apellido}} id: {{book.uploaded_by.id}}</p>
+                {% for books_usuario in like_libro %}
+                    {% if book.id == books_usuario.id  %}
+                    <p><i>Este libro es Parte de tus favoritos</i></p>
+                    {% endif %}
+                {% endfor %}
+                {% for books_usuario in nolike_libro %}
+                    {% if book.id == books_usuario.id  %}
+                    <a href="{% url 'books:follow' pk=book.id %}">Agregar a tus Favoritos</a>
+                    {% endif %}
+                {% endfor %}
+            <hr>
+            {% endfor %}
+        </div>
+</div>
+
+
+{% endblock %}

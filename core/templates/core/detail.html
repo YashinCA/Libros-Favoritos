@@ -1,0 +1,141 @@
+{% extends "core/base.html"%}
+
+{% block titulo %}BIENVENIDA{% endblock %}
+
+{% block estilos %}
+
+<style>
+
+    {% comment %} h1{
+        text-align: center;
+        font-size: 50px;
+        margin-top: 100px;
+    } {% endcomment %}
+</style>
+
+{% endblock %}
+
+{% block contenido %}
+
+<div class="container mt-5">
+    <h1>Detalles del Libro</h1>
+    <hr>
+</div>
+<div class='row'>
+        <div class='d-flex col-6 align-content-center justify-content-center'>
+            {% if es_creador is True  %}
+            <h1>es verdadero</h1>
+            {% endif %}
+            {% if formModel%}
+            <form class='' action='' method='post'>
+                {% csrf_token %}
+                {{ formModel.non_field_errors }}
+
+                {% for field in formModel %}
+                <div class="mb-2">
+                    <label for="{{ field.id_for_label }}" class="col-4 col-form-label">{{ field.label }}</label>
+                    <div class="col-12">
+                        {{ field }}
+                    </div>
+                    {% if field.errors %}
+
+                    <div class="alert alert-danger mt-2" role="alert">
+                        {% for error in field.errors %}
+                        {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    {% if field.help_text %}
+                    <p class="help">{{ field.help_text|safe }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <button class="btn btn-warning d-flex mb-2" type="submit">Modificar</button>
+                    <a data-url="{%url 'books:destroy' pk=book_detail.id%}" class='btn btn-danger btnMostrarModal align-middle fs-6'>
+                    <i class="fa fa-trash fa-lg" aria-hidden="true"></i> Eliminar</a>
+                </div>
+                <div>
+                    
+                </div>
+                <hr>
+                <div>
+                    <p><strong>Fecha Creacion:</strong> {{fecha_creacion}}</p>
+                    <p><strong>Última fecha de modificacion:</strong> {{fecha_modificacion}}</p>
+                </div>
+            </form>
+            {% else %}
+            <div>
+                <p><strong>Título:</strong> {{book_detail.title}}</p>
+                <p><strong>Agregado por Usuario:</strong> {{book_detail.uploaded_by.nombre}} {{book_detail.uploaded_by.apellido}}</p>
+                <p><strong>Fecha Creacion:</strong> {{book_detail.created_at}}</p>
+                    <p><strong>Última fecha de modificacion:</strong> {{book_detail.updated_at}}</p>
+                    <p><strong>Descripción:</strong> {{book_detail.description}}</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class='container col-5 align-content-center justify-content-center'>
+            <h3>Todos los Seguidores de este libro:</h3>
+            <hr>
+            {% for user in users_follow %}
+            <p>{{user.nombre}} {{user.apellido}} {{user.id}} {% if user.id == request.session.usuario.id %}<a class='btnUnfollow' href='{% url 'books:unfollow' pk=book_detail.id %}'>Dejar de Seguir este libro</a>
+            {% endif %} </p>
+            <hr>
+            {% endfor %}
+
+            {% for user_unf in users_unfollow %}
+            {% if user_unf.id == request.session.usuario.id %}
+            <form action="{% url 'books:follow' pk=book_detail.id %}" method="POST">
+            {% csrf_token %}
+            <button class='btn btn-success' type='submit'>Añade este Libro a tus Favoritos</button>
+            </form>
+            {% endif %}
+            {% endfor %}
+        </div>
+        
+</div>
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">ELIMINANDO</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+        Seguro que quieres eliminar este registro?
+        <span id='url_prueba'></span>
+        </div>
+        <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-danger" id='btnEliminar' data-url="">Eliminar!</button>
+        </div>
+    </div>
+    </div>
+{% endblock %}
+{% block scripts %}
+
+<script>
+    $(".btnMostrarModal").click(function(){
+
+    const url= $(this).data("url");
+    $("#btnEliminar").attr("data-url",url);
+
+    $("#exampleModal").modal("show");
+});
+
+$("#btnEliminar").click(function(){
+    const url= $("#btnEliminar").attr("data-url");
+
+    $.get(url,function(data,status){
+        
+        $("#exampleModal").modal("hide");
+        location.href='/books';
+        
+    })
+
+});
+</script>
+
+    {% endblock  %}
